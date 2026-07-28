@@ -53,6 +53,18 @@ Bars group side by side by default. Add `ld-graph-stack` to stack them instead.
 ></graph>
 ```
 
+Prefer setting colors inline over reaching for CSS? `ld-graph-colors` takes a comma separated list and skips the default `--ld-graph-color-N` cycle entirely:
+
+```html
+<graph
+  ld-graph-data="4,8,6,10,5; 6,5,9,7,8"
+  ld-graph-type="bar"
+  ld-graph-colors="#ff6b6b, #4ecdc4"
+  ld-graph-series-labels="Errors, Retries"
+  ld-graph-legend
+></graph>
+```
+
 ## Attributes
 
 | Attribute | Description |
@@ -65,6 +77,8 @@ Bars group side by side by default. Add `ld-graph-stack` to stack them instead.
 | `ld-graph-stack` | Boolean. Stacks bars instead of grouping them (multi-series only). |
 | `ld-graph-min` / `ld-graph-max` | Override the auto-scaled value range. |
 | `ld-graph-labels` | Comma separated x-axis labels, one per data point. |
+| `ld-graph-title` | Optional heading rendered above the chart. |
+| `ld-graph-colors` | Comma separated color list (any valid CSS color). Overrides the default `--ld-graph-color-N` palette per series — series past the end of the list fall back to the palette. |
 | `ld-graph-series-labels` | Comma separated series names, used in the legend and aria-label. |
 | `ld-graph-legend` | Boolean. Renders a color-key legend below the graph (multi-series only). |
 | `ld-graph-aria-label` | Custom accessible label. Falls back to a generated summary of the values. |
@@ -86,8 +100,11 @@ Everything is a CSS variable — set on `:root`, a wrapper, or a single graph vi
 | `--ld-graph-point-fill` | `#fff` | Point marker fill. |
 | `--ld-graph-label-color` | `#8a8a99` | X-axis label / legend text color. |
 | `--ld-graph-label-size` | `0.75rem` | X-axis label / legend text size. |
-| `--ld-graph-gap` | `12px` | Space between the chart, its labels row, and its legend row. |
+| `--ld-graph-gap` | `12px` | Space between the chart, its title, labels row, and legend row. |
 | `--ld-graph-margin-bottom` | `20px` | Space after the whole graph component. |
+| `--ld-graph-title-color` | `inherit` | Title text color. |
+| `--ld-graph-title-size` | `0.95rem` | Title text size. |
+| `--ld-graph-title-weight` | `600` | Title font weight. |
 
 ## JS API
 

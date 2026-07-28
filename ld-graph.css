@@ -17,11 +17,13 @@
   --ld-graph-label-size: 0.75rem;
   --ld-graph-margin-bottom: 20px;
   --ld-graph-gap: 12px;
+  --ld-graph-title-color: inherit;
+  --ld-graph-title-size: 0.95rem;
+  --ld-graph-title-weight: 600;
 
-  /* Series palette for comparison charts — series 1 always matches
-     --ld-graph-color, so single-series graphs are unaffected.
-     Override any of these to restyle one specific series. */
-  --ld-graph-color-1: var(--ld-graph-color);
+  /* Series palette for comparison charts — series 1 always uses
+     --ld-graph-color itself, so single-series graphs are unaffected.
+     Series 2-6 use these, override any to restyle one specific series. */
   --ld-graph-color-2: #ff6bd6;
   --ld-graph-color-3: #6bffb8;
   --ld-graph-color-4: #ffcf5c;
@@ -46,6 +48,14 @@ graph,
   flex: none;
   display: block;
   overflow: visible;
+}
+
+.ld-graph-title {
+  font-size: var(--ld-graph-title-size);
+  font-weight: var(--ld-graph-title-weight);
+  color: var(--ld-graph-title-color);
+  font-family: inherit;
+  line-height: 1.2;
 }
 
 .ld-graph-line {

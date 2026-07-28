@@ -17,13 +17,18 @@
  *   ld-graph-stack              boolean attr. Stacks bars instead of grouping them side by side.
  *   ld-graph-min / -max         override the auto-scaled value range (applied across all series).
  *   ld-graph-labels             comma separated x-axis labels, one per data point.
+ *   ld-graph-title               optional heading rendered above the chart.
+ *   ld-graph-colors               comma separated color list, overrides the default palette per series.
  *   ld-graph-series-labels        comma separated series names, used for the legend and aria-label.
  *   ld-graph-legend               boolean attr. Renders a color-key legend below the graph.
  *   ld-graph-aria-label            custom accessible label (falls back to a generated summary).
  *
- * Colors cycle through --ld-graph-color-1 .. --ld-graph-color-6 (see ld-graph.css),
+ * Colors cycle through --ld-graph-color and --ld-graph-color-2 .. -6 (see ld-graph.css),
  * so a comparison chart is colored automatically — override any of those variables
- * to restyle a specific series.
+ * to restyle a specific series, or skip CSS entirely with an inline list:
+ *   <graph ld-graph-data="1,3,5; 4,2,6" ld-graph-colors="#ff6b6b, #4ecdc4"></graph>
+ * ld-graph-colors takes priority per series; any series past the end of the list
+ * falls back to the CSS variable cycle.
  *
  * Re-render manually after changing an attribute or injecting new markup:
  *   window.ldGraph.refresh();             // re-scan the whole document
@@ -36,7 +41,7 @@
   const VIEW_W = 600;
   const VIEW_H = 200;
   const PAD = 12;
-  const COLOR_SLOTS = 6; // matches --ld-graph-color-1 .. -6 in ld-graph.css
+  const COLOR_SLOTS = 6; // --ld-graph-color (series 1) + --ld-graph-color-2 .. -6 in ld-graph.css
 
   function parseSeries(raw) {
     return raw
@@ -53,7 +58,16 @@
   }
 
   function seriesColorVar(i) {
-    return `var(--ld-graph-color-${(i % COLOR_SLOTS) + 1})`;
+    const slot = i % COLOR_SLOTS;
+    // Slot 0 is --ld-graph-color itself, so overriding it on a single graph
+    // still works — --ld-graph-color-2..6 only kick in for series 2+.
+    return slot === 0 ? 'var(--ld-graph-color)' : `var(--ld-graph-color-${slot + 1})`;
+  }
+
+  function resolveColors(el, count) {
+    const raw = el.getAttribute('ld-graph-colors');
+    const custom = raw ? raw.split(',').map((s) => s.trim()).filter(Boolean) : [];
+    return Array.from({ length: count }, (_, i) => custom[i] || seriesColorVar(i));
   }
 
   function toPoints(data, min, max, len) {
@@ -235,10 +249,15 @@
   function buildAriaLabel(el, seriesList, seriesLabels) {
     const custom = el.getAttribute('ld-graph-aria-label');
     if (custom) return custom;
-    if (seriesList.length === 1) return `Graph with values ${seriesList[0].join(', ')}`;
-    return seriesList
-      .map((series, i) => `${seriesLabels[i] || `series ${i + 1}`}: ${series.join(', ')}`)
-      .join('. ');
+    const title = el.getAttribute('ld-graph-title');
+    const prefix = title ? `${title}. ` : '';
+    if (seriesList.length === 1) return `${prefix}Graph with values ${seriesList[0].join(', ')}`;
+    return (
+      prefix +
+      seriesList
+        .map((series, i) => `${seriesLabels[i] || `series ${i + 1}`}: ${series.join(', ')}`)
+        .join('. ')
+    );
   }
 
   function renderLegend(el, seriesLabels, colors) {
@@ -274,13 +293,21 @@
     const seriesLabels = seriesLabelsRaw
       ? seriesLabelsRaw.split(',').map((s) => s.trim())
       : seriesList.map((_, i) => `Series ${i + 1}`);
-    const colors = seriesList.map((_, i) => seriesColorVar(i));
+    const colors = resolveColors(el, seriesList.length);
 
     el.innerHTML = '';
     el.classList.add('ld-graph');
     if (seriesList.length > 1) el.classList.add('ld-graph-multi');
     el.setAttribute('role', 'img');
     el.setAttribute('aria-label', buildAriaLabel(el, seriesList, seriesLabels));
+
+    const title = el.getAttribute('ld-graph-title');
+    if (title) {
+      const titleEl = document.createElement('div');
+      titleEl.className = 'ld-graph-title';
+      titleEl.textContent = title;
+      el.appendChild(titleEl);
+    }
 
     const svg = svgEl('svg', {
       viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
@@ -354,6 +381,8 @@
         'ld-graph-labels',
         'ld-graph-series-labels',
         'ld-graph-stack',
+        'ld-graph-title',
+        'ld-graph-colors',
       ],
     });
     return observer;

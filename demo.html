@@ -241,6 +241,40 @@
   </div>
 
   <section class="card" style="margin-top: 20px;">
+    <h2>ld-graph-colors</h2>
+    <graph
+      ld-graph-data="4, 8, 6, 10, 5; 6, 5, 9, 7, 8"
+      ld-graph-type="bar"
+      ld-graph-colors="#ff6b6b, #4ecdc4"
+      ld-graph-series-labels="Errors, Retries"
+      ld-graph-legend
+    ></graph>
+    <pre>&lt;graph
+  ld-graph-data="4,8,6,10,5; 6,5,9,7,8"
+  ld-graph-type="bar"
+  ld-graph-colors="#ff6b6b, #4ecdc4"
+  ld-graph-series-labels="Errors, Retries"
+  ld-graph-legend&gt;&lt;/graph&gt;</pre>
+  </section>
+
+  <section class="card" style="margin-top: 20px;">
+    <h2>ld-graph-title</h2>
+    <graph
+      ld-graph-data="14, 22, 18, 27, 24, 31, 29"
+      ld-graph-type="smooth"
+      ld-graph-area
+      ld-graph-title="Weekly active users"
+      style="--ld-graph-title-color: #e9e6f2; --ld-graph-color: #6bffb8;"
+    ></graph>
+    <pre>&lt;graph
+  ld-graph-data="14, 22, 18, 27, 24, 31, 29"
+  ld-graph-type="smooth"
+  ld-graph-area
+  ld-graph-title="Weekly active users"
+&gt;&lt;/graph&gt;</pre>
+  </section>
+
+  <section class="card" style="margin-top: 20px;">
     <h2>ld-graph-labels + custom colors</h2>
     <graph
       ld-graph-data="12, 19, 14, 22, 18, 25, 21"
