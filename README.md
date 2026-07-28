@@ -80,9 +80,9 @@ Everything is a CSS variable — set on `:root`, a wrapper, or a single graph vi
 | `--ld-graph-fill` | 22% of `--ld-graph-color` | Area fill color. |
 | `--ld-graph-bg` | `transparent` | Graph background. |
 | `--ld-graph-height` | `160px` | Chart height. |
-| `--ld-graph-stroke-width` | `2` | Line thickness. |
-| `--ld-graph-radius` | `3` | Bar corner radius. |
-| `--ld-graph-point-radius` | `3` | Point marker radius. |
+| `--ld-graph-stroke-width` | `2px` | Line thickness. |
+| `--ld-graph-radius` | `3px` | Bar corner radius. |
+| `--ld-graph-point-radius` | `3px` | Point marker radius. |
 | `--ld-graph-point-fill` | `#fff` | Point marker fill. |
 | `--ld-graph-label-color` | `#8a8a99` | X-axis label / legend text color. |
 | `--ld-graph-label-size` | `0.75rem` | X-axis label / legend text size. |
@@ -101,6 +101,7 @@ window.ldGraph.render(oneGraphEl);   // re-render a single graph
 
 ## Notes
 
+- `--ld-graph-stroke-width`, `--ld-graph-radius`, and `--ld-graph-point-radius` are applied via CSS to real SVG geometry properties (`r`, `rx`), which — unlike legacy SVG presentation attributes — require an explicit unit. If you override them, use `px` (e.g. `--ld-graph-point-radius: 5px;`), not a bare number.
 - `<graph>` isn't a real custom element (autonomous custom element names require a hyphen) — it's just a plain tag that `ld-graph.js` scans for. Use whatever tag you like.
 - Data values across all series share one scale unless `ld-graph-min`/`ld-graph-max` is set, so comparison charts stay visually accurate.
 - Respects `prefers-reduced-motion` — animated draw-ins are disabled automatically.

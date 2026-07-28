@@ -9,9 +9,9 @@
   --ld-graph-fill: color-mix(in srgb, var(--ld-graph-color) 22%, transparent);
   --ld-graph-bg: transparent;
   --ld-graph-height: 160px;
-  --ld-graph-stroke-width: 2;
-  --ld-graph-radius: 3;
-  --ld-graph-point-radius: 3;
+  --ld-graph-stroke-width: 2px;
+  --ld-graph-radius: 3px;
+  --ld-graph-point-radius: 3px;
   --ld-graph-point-fill: #fff;
   --ld-graph-label-color: #8a8a99;
   --ld-graph-label-size: 0.75rem;
