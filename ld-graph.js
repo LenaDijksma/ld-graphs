@@ -145,9 +145,9 @@
           svgEl('circle', {
             cx: x,
             cy: y,
-            r: 'var(--ld-graph-point-radius, 3)',
+            r: 3, // fallback for browsers that don't support the CSS "r" property below
             class: `ld-graph-point ld-graph-series-${seriesIndex + 1}`,
-            style: `stroke: ${color};`,
+            style: `r: var(--ld-graph-point-radius, 3px); stroke: ${color};`,
           })
         );
       });
@@ -184,9 +184,9 @@
           y: animate ? VIEW_H - PAD : y,
           width: Math.max(barWidth - 2, 1),
           height: animate ? 0 : barH,
-          rx: 'var(--ld-graph-radius, 3)',
+          rx: 3, // fallback for browsers that don't support the CSS "rx" property below
           class: `ld-graph-bar ld-graph-series-${s + 1}`,
-          style: `fill: ${colors[s]};`,
+          style: `rx: var(--ld-graph-radius, 3px); fill: ${colors[s]};`,
         });
         svg.appendChild(rect);
         if (animate) animateBar(rect, y, barH);
