@@ -1,0 +1,116 @@
+/*!
+ * ld-graph.css — styling hooks for ld-graph
+ * Everything is driven by CSS variables, override on :root, a wrapper,
+ * or a single graph element.
+ */
+
+:root {
+  --ld-graph-color: #7c5cff;
+  --ld-graph-fill: color-mix(in srgb, var(--ld-graph-color) 22%, transparent);
+  --ld-graph-bg: transparent;
+  --ld-graph-height: 160px;
+  --ld-graph-stroke-width: 2;
+  --ld-graph-radius: 3;
+  --ld-graph-point-radius: 3;
+  --ld-graph-point-fill: #fff;
+  --ld-graph-label-color: #8a8a99;
+  --ld-graph-label-size: 0.75rem;
+  --ld-graph-margin-bottom: 20px;
+  --ld-graph-gap: 12px;
+
+  /* Series palette for comparison charts — series 1 always matches
+     --ld-graph-color, so single-series graphs are unaffected.
+     Override any of these to restyle one specific series. */
+  --ld-graph-color-1: var(--ld-graph-color);
+  --ld-graph-color-2: #ff6bd6;
+  --ld-graph-color-3: #6bffb8;
+  --ld-graph-color-4: #ffcf5c;
+  --ld-graph-color-5: #5cc8ff;
+  --ld-graph-color-6: #ff8b6b;
+}
+
+graph,
+.ld-graph {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-graph-gap);
+  width: 100%;
+  background: var(--ld-graph-bg);
+  box-sizing: border-box;
+  margin-bottom: var(--ld-graph-margin-bottom);
+}
+
+.ld-graph-svg {
+  width: 100%;
+  height: var(--ld-graph-height);
+  flex: none;
+  display: block;
+  overflow: visible;
+}
+
+.ld-graph-line {
+  fill: none;
+  stroke: var(--ld-graph-color);
+  stroke-width: var(--ld-graph-stroke-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ld-graph-area {
+  fill: var(--ld-graph-fill);
+  stroke: none;
+}
+
+.ld-graph-bar {
+  fill: var(--ld-graph-color);
+  transition: fill 0.15s ease, opacity 0.15s ease;
+}
+
+.ld-graph-bar:hover {
+  opacity: 0.8;
+}
+
+.ld-graph-point {
+  fill: var(--ld-graph-point-fill);
+  stroke: var(--ld-graph-color);
+  stroke-width: 2;
+}
+
+.ld-graph-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--ld-graph-label-size);
+  color: var(--ld-graph-label-color);
+  font-family: inherit;
+}
+
+.ld-graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: var(--ld-graph-label-size);
+  color: var(--ld-graph-label-color);
+  font-family: inherit;
+}
+
+.ld-graph-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ld-graph-legend-swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  display: inline-block;
+  flex: none;
+}
+
+/* Respect reduced-motion preferences for animated draw-ins */
+@media (prefers-reduced-motion: reduce) {
+  .ld-graph-line,
+  .ld-graph-bar {
+    transition: none !important;
+  }
+}
