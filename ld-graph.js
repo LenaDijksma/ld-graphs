@@ -19,6 +19,7 @@
  *   ld-graph-labels             comma separated x-axis labels, one per data point.
  *   ld-graph-title               optional heading rendered above the chart.
  *   ld-graph-colors               comma separated color list, overrides the default palette per series.
+ *   ld-graph-steps                 number of horizontal gridlines with value labels on the right edge.
  *   ld-graph-series-labels        comma separated series names, used for the legend and aria-label.
  *   ld-graph-legend               boolean attr. Renders a color-key legend below the graph.
  *   ld-graph-aria-label            custom accessible label (falls back to a generated summary).
@@ -41,7 +42,47 @@
   const VIEW_W = 600;
   const VIEW_H = 200;
   const PAD = 12;
+  const GUTTER = 34; // reserved width for ld-graph-steps value labels on the right
   const COLOR_SLOTS = 6; // --ld-graph-color (series 1) + --ld-graph-color-2 .. -6 in ld-graph.css
+
+  function formatStepValue(v) {
+    const rounded = Math.round(v * 10) / 10;
+    return Number.isInteger(rounded) ? String(rounded) : String(rounded.toFixed(1));
+  }
+
+  // Classic "nice numbers" tick algorithm (Heckbert) — picks round step sizes
+  // (1/2/5 × a power of 10) instead of raw fractions of the data range, and
+  // expands min/max out to clean multiples of that step.
+  function niceNumber(value, round) {
+    if (value === 0) return 0;
+    const exponent = Math.floor(Math.log10(Math.abs(value)));
+    const fraction = value / Math.pow(10, exponent);
+    let niceFraction;
+    if (round) {
+      if (fraction < 1.5) niceFraction = 1;
+      else if (fraction < 3) niceFraction = 2;
+      else if (fraction < 7) niceFraction = 5;
+      else niceFraction = 10;
+    } else {
+      if (fraction <= 1) niceFraction = 1;
+      else if (fraction <= 2) niceFraction = 2;
+      else if (fraction <= 5) niceFraction = 5;
+      else niceFraction = 10;
+    }
+    return niceFraction * Math.pow(10, exponent);
+  }
+
+  function niceScale(min, max, desiredSteps) {
+    if (min === max) {
+      min -= 1;
+      max += 1;
+    }
+    const step = niceNumber(niceNumber(max - min, false) / Math.max(desiredSteps - 1, 1), true);
+    const niceMin = Math.floor(min / step) * step;
+    const niceMax = Math.ceil(max / step) * step;
+    const count = Math.round((niceMax - niceMin) / step) + 1;
+    return { min: niceMin, max: niceMax, count };
+  }
 
   function parseSeries(raw) {
     return raw
@@ -70,10 +111,10 @@
     return Array.from({ length: count }, (_, i) => custom[i] || seriesColorVar(i));
   }
 
-  function toPoints(data, min, max, len) {
+  function toPoints(data, min, max, len, right) {
     const range = max - min || 1;
     return data.map((v, i) => {
-      const x = len === 1 ? VIEW_W / 2 : PAD + (i / (len - 1)) * (VIEW_W - PAD * 2);
+      const x = len === 1 ? (PAD + right) / 2 : PAD + (i / (len - 1)) * (right - PAD);
       const y = VIEW_H - PAD - ((v - min) / range) * (VIEW_H - PAD * 2);
       return [x, y];
     });
@@ -176,10 +217,10 @@
     });
   }
 
-  function renderBarsGrouped(svg, el, seriesList, min, max, animate, colors) {
+  function renderBarsGrouped(svg, el, seriesList, min, max, animate, colors, right) {
     const len = seriesList[0].length;
     const range = max - min || 1;
-    const barSlot = (VIEW_W - PAD * 2) / len;
+    const barSlot = (right - PAD) / len;
     const groupGap = 0.22; // gap around each group of bars
     const seriesCount = seriesList.length;
     const groupWidth = barSlot * (1 - groupGap);
@@ -208,19 +249,21 @@
     }
   }
 
-  function renderBarsStacked(svg, el, seriesList, animate, colors) {
+  function stackedRange(seriesList) {
     const len = seriesList[0].length;
-    // stacked totals define the scale, unless min/max were explicitly forced upstream
     const totals = [];
     for (let i = 0; i < len; i++) {
       let sum = 0;
       for (let s = 0; s < seriesList.length; s++) sum += seriesList[s][i] || 0;
       totals.push(sum);
     }
-    const max = Math.max(...totals);
-    const min = 0;
+    return { min: 0, max: Math.max(...totals) };
+  }
+
+  function renderBarsStacked(svg, el, seriesList, animate, colors, right, min, max) {
+    const len = seriesList[0].length;
     const range = max - min || 1;
-    const barSlot = (VIEW_W - PAD * 2) / len;
+    const barSlot = (right - PAD) / len;
     const gapRatio = 0.28;
     const barWidth = barSlot * (1 - gapRatio);
 
@@ -244,6 +287,29 @@
         if (animate) animateBar(rect, y, segH);
       }
     }
+  }
+
+  function renderGridLines(svg, min, max, right, stepCount) {
+    const range = max - min || 1;
+    for (let i = 0; i < stepCount; i++) {
+      const y = PAD + (i / (stepCount - 1)) * (VIEW_H - PAD * 2);
+      svg.appendChild(svgEl('line', { x1: PAD, x2: right, y1: y, y2: y, class: 'ld-graph-grid-line' }));
+    }
+  }
+
+  function renderGridLabels(wrapper, min, max, stepCount) {
+    const range = max - min || 1;
+    const overlay = document.createElement('div');
+    overlay.className = 'ld-graph-grid-labels';
+    for (let i = 0; i < stepCount; i++) {
+      const value = max - (i / (stepCount - 1)) * range;
+      const topPercent = ((PAD + (i / (stepCount - 1)) * (VIEW_H - PAD * 2)) / VIEW_H) * 100;
+      const label = document.createElement('span');
+      label.style.top = `${topPercent}%`;
+      label.textContent = formatStepValue(value);
+      overlay.appendChild(label);
+    }
+    wrapper.appendChild(overlay);
   }
 
   function buildAriaLabel(el, seriesList, seriesLabels) {
@@ -286,8 +352,10 @@
     const animate = el.hasAttribute('ld-graph-animate');
     const stack = el.hasAttribute('ld-graph-stack');
     const allValues = seriesList.flat();
-    const min = el.hasAttribute('ld-graph-min') ? parseFloat(el.getAttribute('ld-graph-min')) : Math.min(...allValues);
-    const max = el.hasAttribute('ld-graph-max') ? parseFloat(el.getAttribute('ld-graph-max')) : Math.max(...allValues);
+    const hasMinAttr = el.hasAttribute('ld-graph-min');
+    const hasMaxAttr = el.hasAttribute('ld-graph-max');
+    let min = hasMinAttr ? parseFloat(el.getAttribute('ld-graph-min')) : Math.min(...allValues);
+    let max = hasMaxAttr ? parseFloat(el.getAttribute('ld-graph-max')) : Math.max(...allValues);
 
     const seriesLabelsRaw = el.getAttribute('ld-graph-series-labels');
     const seriesLabels = seriesLabelsRaw
@@ -309,32 +377,72 @@
       el.appendChild(titleEl);
     }
 
+    const stepsAttr = el.getAttribute('ld-graph-steps');
+    const requestedSteps = stepsAttr !== null ? Math.max(2, parseInt(stepsAttr, 10) || 4) : 0;
+    const right = requestedSteps ? VIEW_W - PAD - GUTTER : VIEW_W - PAD;
+    let stepCount = requestedSteps;
+
+    // Auto min/max snap to nice round tick values so labels aren't ugly
+    // fractions of the raw data range. Explicit ld-graph-min/-max are exact
+    // overrides, so those are left alone and just divided evenly instead.
+    // (Stacked bars use their own totals-based range, handled below.)
+    if (requestedSteps && !hasMinAttr && !hasMaxAttr && !(type === 'bar' && stack && seriesList.length > 1)) {
+      const nice = niceScale(min, max, requestedSteps);
+      min = nice.min;
+      max = nice.max;
+      stepCount = nice.count;
+    }
+
+    const chartWrap = document.createElement('div');
+    chartWrap.className = 'ld-graph-chart';
+
     const svg = svgEl('svg', {
       viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
       preserveAspectRatio: 'none',
       class: 'ld-graph-svg',
     });
 
+    let gridMin = min;
+    let gridMax = max;
+
     if (type === 'bar') {
       if (stack && seriesList.length > 1) {
-        renderBarsStacked(svg, el, seriesList, animate, colors);
+        let range = stackedRange(seriesList);
+        if (requestedSteps) {
+          const nice = niceScale(range.min, range.max, requestedSteps);
+          range = { min: nice.min, max: nice.max };
+          stepCount = nice.count;
+        }
+        gridMin = range.min;
+        gridMax = range.max;
+        if (stepCount) renderGridLines(svg, gridMin, gridMax, right, stepCount);
+        renderBarsStacked(svg, el, seriesList, animate, colors, right, range.min, range.max);
       } else {
-        renderBarsGrouped(svg, el, seriesList, min, max, animate, colors);
+        if (stepCount) renderGridLines(svg, gridMin, gridMax, right, stepCount);
+        renderBarsGrouped(svg, el, seriesList, min, max, animate, colors, right);
       }
     } else {
+      if (stepCount) renderGridLines(svg, gridMin, gridMax, right, stepCount);
       seriesList.forEach((data, i) => {
-        const points = toPoints(data, min, max, data.length);
+        const points = toPoints(data, min, max, data.length, right);
         renderLineSeries(svg, el, points, type, animate, i, colors[i]);
       });
     }
 
-    el.appendChild(svg);
+    chartWrap.appendChild(svg);
+    if (stepCount) renderGridLabels(chartWrap, gridMin, gridMax, stepCount);
+    el.appendChild(chartWrap);
 
     const labelsRaw = el.getAttribute('ld-graph-labels');
     if (labelsRaw) {
       const labels = labelsRaw.split(',').map((s) => s.trim());
       const wrap = document.createElement('div');
       wrap.className = 'ld-graph-labels';
+      // Match the chart's actual plotted x-range (PAD on the left, PAD+GUTTER
+      // on the right when ld-graph-steps is present) so the first/last label
+      // line up with the first/last data point instead of the raw container edge.
+      wrap.style.paddingLeft = `${(PAD / VIEW_W) * 100}%`;
+      wrap.style.paddingRight = `${((VIEW_W - right) / VIEW_W) * 100}%`;
       labels.forEach((text) => {
         const span = document.createElement('span');
         span.textContent = text;
@@ -383,6 +491,7 @@
         'ld-graph-stack',
         'ld-graph-title',
         'ld-graph-colors',
+        'ld-graph-steps',
       ],
     });
     return observer;

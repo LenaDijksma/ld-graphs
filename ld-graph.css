@@ -94,6 +94,33 @@ graph,
   font-family: inherit;
 }
 
+.ld-graph-chart {
+  position: relative;
+  width: 100%;
+}
+
+.ld-graph-grid-line {
+  stroke: var(--ld-graph-grid-color, color-mix(in srgb, currentColor 15%, transparent));
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.ld-graph-grid-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ld-graph-grid-labels span {
+  position: absolute;
+  right: 4px;
+  transform: translateY(-50%);
+  font-family: inherit;
+  font-size: var(--ld-graph-grid-label-size, var(--ld-graph-label-size));
+  color: var(--ld-graph-grid-label-color, var(--ld-graph-label-color));
+  white-space: nowrap;
+}
+
 .ld-graph-legend {
   display: flex;
   flex-wrap: wrap;

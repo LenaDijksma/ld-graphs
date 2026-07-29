@@ -65,6 +65,21 @@ Prefer setting colors inline over reaching for CSS? `ld-graph-colors` takes a co
 ></graph>
 ```
 
+## Gridlines with value labels
+
+`ld-graph-steps` adds evenly spaced horizontal gridlines with their values labeled on the right edge — useful when the chart needs to communicate real numbers, not just shape. When min/max aren't set explicitly, the scale snaps to round numbers (10, 20, 30 rather than 14, 22.5, 31), so the actual gridline count may come out slightly different from what you asked for — that's expected, same as most charting libraries. Set `ld-graph-min`/`ld-graph-max` explicitly if you want the exact count honored.
+
+```html
+<graph
+  ld-graph-data="14, 22, 18, 27, 24, 31, 29"
+  ld-graph-type="smooth"
+  ld-graph-area
+  ld-graph-steps="5"
+></graph>
+```
+
+Works with any type, including stacked bars — the gridline scale matches whatever scale the chart itself is using (stacked totals for stacked bars, the shared min/max otherwise).
+
 ## Attributes
 
 | Attribute | Description |
@@ -79,6 +94,7 @@ Prefer setting colors inline over reaching for CSS? `ld-graph-colors` takes a co
 | `ld-graph-labels` | Comma separated x-axis labels, one per data point. |
 | `ld-graph-title` | Optional heading rendered above the chart. |
 | `ld-graph-colors` | Comma separated color list (any valid CSS color). Overrides the default `--ld-graph-color-N` palette per series — series past the end of the list fall back to the palette. |
+| `ld-graph-steps` | Target number of horizontal gridlines, labeled with their value on the right edge. Snaps to round numbers when min/max are auto-detected, so the actual count may differ slightly from the number requested. |
 | `ld-graph-series-labels` | Comma separated series names, used in the legend and aria-label. |
 | `ld-graph-legend` | Boolean. Renders a color-key legend below the graph (multi-series only). |
 | `ld-graph-aria-label` | Custom accessible label. Falls back to a generated summary of the values. |
@@ -102,6 +118,9 @@ Everything is a CSS variable — set on `:root`, a wrapper, or a single graph vi
 | `--ld-graph-label-size` | `0.75rem` | X-axis label / legend text size. |
 | `--ld-graph-gap` | `12px` | Space between the chart, its title, labels row, and legend row. |
 | `--ld-graph-margin-bottom` | `20px` | Space after the whole graph component. |
+| `--ld-graph-grid-color` | 15% currentColor | Gridline color, only visible with `ld-graph-steps`. |
+| `--ld-graph-grid-label-color` | `--ld-graph-label-color` | Grid value label color. |
+| `--ld-graph-grid-label-size` | `--ld-graph-label-size` | Grid value label size. |
 | `--ld-graph-title-color` | `inherit` | Title text color. |
 | `--ld-graph-title-size` | `0.95rem` | Title text size. |
 | `--ld-graph-title-weight` | `600` | Title font weight. |
