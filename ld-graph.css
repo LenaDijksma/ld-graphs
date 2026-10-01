@@ -5,7 +5,7 @@
  */
 
 :root {
-  --ld-graph-color: #7c5cff;
+  --ld-graph-color: #f5741e;
   --ld-graph-fill: color-mix(in srgb, var(--ld-graph-color) 22%, transparent);
   --ld-graph-bg: transparent;
   --ld-graph-height: 160px;
@@ -146,6 +146,7 @@ graph,
 
 /* Respect reduced-motion preferences for animated draw-ins */
 @media (prefers-reduced-motion: reduce) {
+
   .ld-graph-line,
   .ld-graph-bar {
     transition: none !important;
